@@ -9,7 +9,7 @@ $numFilesToProcess = 1
 $files = @()
 # The minimum size of any video to re-encode, in MB.
 # Videos of less than this filesize will be skipped (to avoid re-encoding videos that are already efficiently encoded).
-$minFileSize = 4096
+$minFileSize = 0
 # The maximum duration of any video to encode, in seconds.
 # Videos longer than this will be skipped.
 $maxDuration = 5400
@@ -49,9 +49,9 @@ $renameNewVideoToOldVideoName = 1
 $baseArgumentList = ' -n -c:v ' + $outputVideoCodec + ' -c:a ' + $outputAudioCodec + ' -preset ' + $preset + ' -crf ' + $crf
 
 if ($outputVideoCodec -eq "libx265") {
-	$baseArgumentList = $baseArgumentList + ' -x265-params "keyint=' + $keyInt
+	$baseArgumentList = $baseArgumentList + ' -x265-params "keyint=' + $keyInt + '" '
 } elseif ($outputVideoCodec -eq "libx264") {
-	$baseArgumentList = $baseArgumentList + ' -x264-params "keyint=' + $keyInt
+	$baseArgumentList = $baseArgumentList + ' -x264-params "keyint=' + $keyInt + '" '
 }
 
 # Get all files in the target directory, recursively (traverse all subfolders as well).
@@ -60,7 +60,17 @@ $allFilesInDirectory = Get-Childitem -Attributes !Directory+!System -Path $baseP
 # Counts how many videos have been re-encoded, so we can stop when we have reached the maximum number set earlier.
 $found = 0
 
+$validVideoExtensions = @("mp4")
+
 ForEach ($fileInDirectory in $allFilesInDirectory) {
+	$lastDot = $fileInDirectory.LastIndexOf(".") + 1
+	if ($lastDot -eq 0) {
+		continue
+	}
+	$extension = $fileInDirectory.SubString($lastDot).ToLower()
+	if ($extension -notin $validVideoExtensions) {
+		continue
+	}
 	$fullFilePath = $basePath + $fileInDirectory
 	$fileInfo = Get-Item $fullFilePath
 	$fileSizeMB = $fileInfo.Length / 1MB
