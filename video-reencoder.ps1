@@ -98,7 +98,7 @@ ForEach ($fileInDirectory in $allFilesInDirectory) {
 }
 	
 ForEach ($file in $files) {
-	Write-Host ("File: " + $file)
+	# Write-Host ("File: " + $file)
 }
 
 ForEach ($file in $files) {
